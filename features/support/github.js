@@ -110,16 +110,18 @@ function createBranch(branch, repoOwner, repoName) {
     const repo = repoName || 'functional-git';
 
     // Create a branch from the tip of the master branch
-    return octokit.git
+    return octokit.rest.git
         .getRef({
             owner,
             repo,
             ref: 'heads/master'
         })
         .then(referenceData => {
+            console.log('----------ref data: ', referenceData.data);
+
             const { sha } = referenceData.data.object;
 
-            return octokit.git.createRef({
+            return octokit.rest.git.createRef({
                 owner,
                 repo,
                 ref: `refs/heads/${branch}`,
@@ -127,6 +129,7 @@ function createBranch(branch, repoOwner, repoName) {
             });
         })
         .catch(err => {
+            console.log('--------------------err in createBranch: ', err);
             // throws an error if a branch already exists, so this is fine
             Assert.strictEqual(err.status, 422);
         });
@@ -199,7 +202,7 @@ function createTag(tag, branch, repoOwner, repoName) {
         .then(referenceData => {
             const { sha } = referenceData.data.object;
 
-            return octokit.git.createRef({
+            return octokit.rest.git.createRef({
                 owner,
                 repo,
                 ref: `refs/tags/${tag}`,
@@ -250,7 +253,7 @@ function createAnnotatedTag(tag, branch, repoOwner, repoName) {
         .then(response => {
             const { sha } = response.data;
 
-            return octokit.git.createRef({
+            return octokit.rest.git.createRef({
                 owner,
                 repo,
                 ref: `refs/tags/${tag}`,

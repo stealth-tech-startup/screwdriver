@@ -715,9 +715,16 @@ const buildsPlugin = {
 
                         buildConfig.jobId = nextJob.id;
                         if (!isExternal) {
+                            console.log('-----------------------event.id: ', event.id);
                             buildConfig.eventId = event.id;
                         } else {
-                            buildConfig.eventId = pipelineJoinData[pid].event.id;
+                            console.log('-----------------------pipelineJoinData[pid]: ', pipelineJoinData[pid]);
+                            console.log(
+                                '-----------------------pipelineJoinData[pid].event: ',
+                                pipelineJoinData[pid].event.id
+                            );
+
+                            buildConfig.eventId = pipelineJoinData[pid].event;
                         }
 
                         deletePromises.push(deleteBuild(buildConfig, buildFactory));
