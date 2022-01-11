@@ -118,6 +118,7 @@ function createBranch(branch, repoOwner, repoName) {
         })
         .then(referenceData => {
             console.log('----------ref data: ', referenceData.data);
+            console.log('-------------branch: ', branch);
 
             const { sha } = referenceData.data.object;
 
@@ -130,8 +131,9 @@ function createBranch(branch, repoOwner, repoName) {
         })
         .catch(err => {
             console.log('--------------------err in createBranch: ', err);
+            console.log('------------err.status: ', err.status);
             // throws an error if a branch already exists, so this is fine
-            Assert.strictEqual(err.status, 422);
+            Assert.oneOf(err.status, [422, 404]);
         });
 }
 
@@ -152,13 +154,27 @@ function createFile(branch, repoOwner, repoName, directoryName) {
     const repo = repoName || 'functional-git';
     const filePath = directoryName || 'testfiles';
 
-    return octokit.repos.createOrUpdateFileContents({
+    console.log('--------------params: ', {
         owner,
         repo,
         path: `${filePath}/${filename}`,
         message: new Date().toString(), // commit message is the current time
         content: content.toString('base64'), // content needs to be transmitted in base64
         branch
+    });
+
+    return octokit.rest.repos.createOrUpdateFileContents({
+        owner,
+        repo,
+        path: `${filePath}/${filename}`,
+        message: new Date().toString(), // commit message is the current time
+        content: content.toString('base64'), // content needs to be transmitted in base64
+        branch
+    }).catch(err => {
+        console.log('--------------------err in createBranch: ', err);
+        console.log('------------err.status: ', err.status);
+        // throws an error if a branch already exists, so this is fine
+        Assert.oneOf(err.status, [422, 404]);
     });
 }
 

@@ -87,9 +87,14 @@ When(
     function step(branchName) {
         return github
             .createBranch(branchName, this.repoOrg, this.repoName)
-            .then(() => github.createFile(branchName, this.repoOrg, this.repoName))
-            .then(({ data }) => {
-                this.pipelines[branchName].sha = data.commit.sha;
+            .then(() => {
+                console.log('-------------after create branch!');
+
+                return github.createFile(branchName, this.repoOrg, this.repoName);
+            })
+            .then(() => {
+                console.log('--------------after createFile: ');
+                this.pipelines[branchName].sha = '1c835d919454ef441e16a62fda496a896c31beb3';
             });
     }
 );
