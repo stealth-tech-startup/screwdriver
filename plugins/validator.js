@@ -29,13 +29,22 @@ const validatorTemplate = {
                 },
                 handler: async (request, h) => {
                     const { notificationsValidationErr } = options;
-                    const { buildClusterFactory, templateFactory } = request.server.app;
+                    const {
+                        buildClusterFactory,
+                        templateFactory,
+                        pipelineTemplateVersionFactory,
+                        pipelineTemplateTagFactory,
+                        templateMetaFactory
+                    } = request.server.app;
 
                     // TODO: Handle externalJoin case (pass in triggerFactory and pipelineId)
                     return parser({
                         yaml: request.payload.yaml,
                         templateFactory,
                         buildClusterFactory,
+                        pipelineTemplateVersionFactory,
+                        pipelineTemplateTagFactory,
+                        templateMetaFactory,
                         notificationsValidationErr
                     }).then(pipeline => h.response(pipeline));
                 },
