@@ -34,7 +34,7 @@ const validatorTemplate = {
                         templateFactory,
                         pipelineTemplateVersionFactory,
                         pipelineTemplateTagFactory,
-                        templateMetaFactory
+                        pipelineTemplateFactory
                     } = request.server.app;
 
                     // TODO: Handle externalJoin case (pass in triggerFactory and pipelineId)
@@ -44,7 +44,7 @@ const validatorTemplate = {
                         buildClusterFactory,
                         pipelineTemplateVersionFactory,
                         pipelineTemplateTagFactory,
-                        templateMetaFactory,
+                        pipelineTemplateFactory,
                         notificationsValidationErr
                     }).then(pipeline => h.response(pipeline));
                 },
