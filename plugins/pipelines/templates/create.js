@@ -38,6 +38,7 @@ module.exports = () => ({
                 throw boom.forbidden('Not allowed to publish this template');
             }
 
+            console.log("making a call topipelineTemplateVersionFactory");
             const templateVersion = await pipelineTemplateVersionFactory.create(
                 {
                     ...config.template,
