@@ -1,55 +1,36 @@
-[<u>Pipeline Template Usage</u>](#pipeline-template-usage)
+# Pipeline Template Design
 
-> [<u>Current Supported
-> Customization</u>](#current-supported-customization)
->
-> [<u>Customization in Phase-2</u>](#customization-in-phase-2)
->
-> [<u>Diagram Illustration</u>](#diagram-illustration)
->
-> [<u>List of Customizable
-> Configurations</u>](#list-of-customizable-configurations)
+## Table of Contents
 
-[<u>Flatten template config to eliminate shared config during
-parser</u>](#flatten-template-config-to-eliminate-shared-config-during-parser)
+-   [Pipeline Template Usage](#pipeline-template-usage)
 
-[<u>Customizing Configuration at the Pipeline
-Level</u>](#customizing-configuration-at-the-pipeline-level)
+    -   [Current Supported Customization](#current-supported-customization)
+    -   [Customization in Phase-2](#customization-in-phase-2)
+        -   [Diagram Illustration](#diagram-illustration)
+        -   [List of Customizable Configurations](#list-of-customizable-configurations)
 
-> [<u>Cache</u>](#cache)
->
-> [<u>Subscribe</u>](#subscribe)
->
-> [<u>Parameters</u>](#parameters)
->
-> [<u>Annotations</u>](#annotations)
->
-> [<u>Stages</u>](#stages)
->
-> [<u>Shared</u>](#shared)
->
-> [<u>Jobs</u>](#jobs)
+-   [Flatten template config to eliminate shared config during parser](#flatten-template-config-to-eliminate-shared-config-during-parser)
+-   [Customizing Configuration at the Pipeline Level](#customizing-configuration-at-the-pipeline-level)
+    -   [Cache](#cache)
+    -   [Subscribe](#subscribe)
+    -   [Parameters](#parameters)
+    -   [Annotations](#annotations)
+    -   [Stages](#stages)
+    -   [Shared](#shared)
+    -   [Jobs](#jobs)
+-   [Customizing jobs](#customizing-jobs)
 
-[<u>Customizing jobs</u>](#customizing-jobs)
+    -   [Use Case 1: Adding a new job which is not part of the Pipeline Template](#use-case-1-adding-a-new-job-which-is-not-part-of-the-pipeline-template)
+    -   [Use Case 2: Modifying a job that does not use a (job) template](#use-case-2-modifying-a-job-that-does-not-use-a-job-template)
+    -   [Use Case 3: Modifying a job that uses a (job) template](#use-case-3-modifying-a-job-that-uses-a-job-template)
 
-> [<u>Use Case 1: Adding a new job which is not part of the Pipeline
-> Template</u>](#use-case-1-adding-a-new-job-which-is-not-part-of-the-pipeline-template)
->
-> [<u>Use Case 2: Modifying a job that does not use a (job)
-> template</u>](#use-case-2-modifying-a-job-that-does-not-use-a-job-template)
->
-> [<u>Use Case 3: Modifying a job that uses a (job)
-> template</u>](#use-case-3-modifying-a-job-that-uses-a-job-template)
+-   [Customizing shared configuration](#customizing-shared-configuration)
 
-[<u>Customizing shared
-configuration</u>](#customizing-shared-configuration)
+-   [Nested Pipeline Template](#nested-pipeline-template)
 
-[<u>Nested Pipeline Template</u>](#nested-pipeline-template)
+-   [Trusted Template](#trusted-template)
 
-[<u>Trusted Template</u>](#trusted-template)
-
-[<u>Pipeline Template Usage
-metrics</u>](#pipeline-template-usage-metrics)
+-   [Pipeline Template Usage Metrics](#pipeline-template-usage-metrics)
 
 ## Pipeline Template Usage
 
@@ -185,7 +166,7 @@ childPipelines</p>
 </tbody>
 </table>
 
-##  Flatten template config to eliminate shared config during parser
+## Flatten template config to eliminate shared config during parser
 
 <span class="mark">  
 In a pipeline template, the configuration shared among multiple tasks
@@ -195,234 +176,172 @@ the job configuration.</span>
 <span class="mark">Given an example of a pipeline template with the
 configuration below.</span>
 
-shared:
-
-image: node:10
-
-environment:
-
-VAR1: "one"
-
-VAR2: "two"
-
-steps:
-
-\- init: npm install
-
-\- test: npm test
+```
+shared:
+  image: node:10
+  environment:
+    VAR1: "one"
+    VAR2: "two"
+  steps:
+    - init: npm install
+    - test: npm test
 
 jobs:
-
-main:
-
-requires: \[~pr, ~commit\]
-
-second:
-
-requires: \[main\]
-
-
+  main:
+    requires: [~pr, ~commit]
+  second:
+    requires: [main]
+```
 
 <span class="mark">The configuration should be stored as follows:
 removing the shared configuration and integrating it directly into the
 individual job configurations.  
 </span>
 
-jobs:
-
-main:
-
-requires: \[~pr, ~commit\]
-
-image: node:10
-
-environment:
-
-VAR1: "one"
-
-VAR2: "two"
-
-steps:
-
-\- init: npm install
-
-\- test: npm test
-
-second:
-
-requires: \[main\]
-
-image: node:10
-
-environment:
-
-VAR1: "one"
-
-VAR2: "two"
-
-steps:
-
-\- init: npm install
-
-\- test: npm test
-
-
+```
+jobs:
+    main:
+        requires: [~pr, ~commit]
+        image: node:10
+        environment:
+            VAR1: "one"
+            VAR2: "two"
+        steps:
+            - init: npm install
+            - test: npm test
+    second:
+        requires: [main]
+        image: node:10
+        environment:
+            VAR1: "one"
+            VAR2: "two"
+        steps:
+            - init: npm install
+            - test: npm test
+```
 
 ## Customizing Configuration at the Pipeline Level
 
-### Cache 
+### Cache
 
 Given cache config in the pipeline template below:
 
-cache:
+```yaml
+cache:
+    pipeline: [~/versions]
+    event: [$SD_SOURCE_DIR/node_modules]
+    job:
+        usejobcache: [/tmp/test]
+```
 
-pipeline: \[~/versions\]
-
-event: \[$SD\_SOURCE\_DIR/node\_modules\]
-
-job:
-
-usejobcache: \[/tmp/test\]
-
-  
 and user defined pipeline below:
 
-cache:
+```yaml
+cache:
+    pipeline: [~/node_modules]
+    job:
+        docker-publish: [/tmp/artifacts]
+```
 
-pipeline: \[~/node\_modules\]
-
-job:
-
-docker-publish: \[/tmp/artifacts\]
-
-  
 the final config after merging should be:
 
-cache:
-
-pipeline: \[~/versions, ~/node\_modules\]
-
-event: \[$SD\_SOURCE\_DIR/node\_modules\]
-
-job:
-
-usejobcache: \[/tmp/test\]
-
-docker-publish: \[/tmp/artifacts\]
-
-
+```yaml
+cache:
+    pipeline: [~/versions, ~/node_modules]
+    event: [$SD_SOURCE_DIR/node_modules]
+    job:
+        usejobcache: [/tmp/test]
+        docker-publish: [/tmp/artifacts]
+```
 
 ### Subscribe
 
 Given subscribe config in the pipeline template below:
 
-subscribe:
+```yaml
+subscribe:
+    scmUrls:
+        - git@github.com:vjap1/workflow.git: ['~commit', '~pr']
+        - git@github.com:vjap3/workflow.git: ['~commit', '~pr']
+```
 
-scmUrls:
-
-\- git@github.com:vjap1/workflow.git: \['~commit', '~pr'\]
-
-\- git@github.com:vjap3/workflow.git: \['~commit', '~pr'\]
-
-  
 and user defined pipeline below:
 
-subscribe:
+```yaml
+subscribe:
+    scmUrls:
+        - git@github.com:vjap1/workflow.git: ['~pr']
+        - git@github.com:vjap2/workflow.git: ['~commit', '~pr']
+```
 
-scmUrls:
-
-\- git@github.com:vjap1/workflow.git: \['~pr'\]
-
-\- git@github.com:vjap2/workflow.git: \['~commit', '~pr'\]
-
-  
 the final config after merging should be:
 
-subscribe:
-
-scmUrls:
-
-\- git@github.com:vjap1/workflow.git: \['~pr'\]
-
-\- git@github.com:vjap2/workflow.git: \['~commit', '~pr'\]
-
-\- git@github.com:vjap3/workflow.git: \['~commit', '~pr'\]
-
-
+```yaml
+subscribe:
+    scmUrls:
+        - git@github.com:vjap1/workflow.git: ['~pr']
+        - git@github.com:vjap2/workflow.git: ['~commit', '~pr']
+        - git@github.com:vjap3/workflow.git: ['~commit', '~pr']
+```
 
 ### Parameters
 
 Given parameters config in the pipeline template below:
 
-parameters:
-
-nameA: "value1"
-
-nameB:
-
-value: "value2"
-
-description: "description of nameB"
-
-nameC: \["value1", "value2"\]
-
-
+```yaml
+parameters:
+    nameA: 'value1'
+    nameB:
+        value: 'value2'
+        description: 'description of nameB'
+    nameC: ['value1', 'value2']
+```
 
 and user defined pipeline below:
 
-parameters:  
-nameB: "value4"  
-nameC: \["value1"\]
+```yaml
+parameters:
+    nameB: 'value4'
+    nameC: ['value1']
+    nameD: 'value3'
+```
 
-nameD: "value3"
-
-  
 the final config after merging should be:
 
-parameters:
-
-nameA: "value1"
-
-nameB:
-
-value: "value4"
-
-description: "description of nameB"
-
-nameC: \["value1"\]
-
-nameD: "value3"
-
-
+```yaml
+parameters:
+    nameA: 'value1'
+    nameB:
+        value: 'value4'
+        description: 'description of nameB'
+    nameC: ['value1']
+    nameD: 'value3'
+```
 
 ### Annotations
 
 Given annotations in the pipeline template below:
 
-annotations:
-
-screwdriver.cd/restrictPR: fork
-
-
+```yaml
+annotations:
+    screwdriver.cd/restrictPR: fork
+```
 
 and user defined pipeline below:
 
-annotations:
+```yaml
+annotations:
+    screwdriver.cd/restrictPR: none
+    screwdriver.cd/chainPR: true
+```
 
-screwdriver.cd/restrictPR: none
-
-screwdriver.cd/chainPR: true
-
-  
 the final config after merging should be:
 
-annotations:
-
-screwdriver.cd/restrictPR: none
-
-screwdriver.cd/chainPR: true
-
-
+```yaml
+annotations:
+    screwdriver.cd/restrictPR: none
+    screwdriver.cd/chainPR: true
+```
 
 ### Stages
 
@@ -439,21 +358,18 @@ see [<u>customizing jobs</u>](#customizing-jobs)
 
 #### Use Case 1: Adding a new job which is not part of the Pipeline Template
 
+```yaml
 template: example/mytemplate@1.2.3
 
 jobs:
-
-main:
-
-requires: \[~pr, ~commit\]
-
-steps:
-
-\- s1: echo 'added new job'
+    main:
+        requires: [~pr, ~commit]
+        steps:
+            - s1: echo 'added new job'
 
 publish:
-
-requires: \[main\]
+    requires: [main]
+```
 
 Note: we need to allow “requires” to be modified.
 
