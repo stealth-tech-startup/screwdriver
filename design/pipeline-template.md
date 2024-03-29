@@ -247,7 +247,7 @@ the final config after merging should be:
 
 ```yaml
 cache:
-    pipeline: [~/versions, ~/node_modules]
+    pipeline: [~/node_modules]
     event: [$SD_SOURCE_DIR/node_modules]
     job:
         usejobcache: [/tmp/test]
