@@ -64,7 +64,7 @@ function ensurePipelineExists(config) {
 
                 this.pipelineId = response.body.id;
 
-                return this.getPipeline(this.pipelineId);
+                return this.getPipelineJobs(this.pipelineId);
             })
             .catch(err => {
                 const [, str] = err.message.split(': ');
@@ -81,12 +81,12 @@ function ensurePipelineExists(config) {
 
                             this.pipelineId = resCre.body.id;
 
-                            return this.getPipeline(this.pipelineId);
+                            return this.getPipelineJobs(this.pipelineId);
                         });
                     });
                 }
 
-                return this.getPipeline(this.pipelineId);
+                return this.getPipelineJobs(this.pipelineId);
             })
             /* eslint-disable complexity */
             .then(response => {
@@ -231,9 +231,17 @@ function CustomWorld({ attach, parameters }) {
                     this.loginResponse = err;
                 })
         );
-    this.getPipeline = pipelineId =>
+    this.getPipelineJobs = pipelineId =>
         request({
             url: `${this.instance}/${this.namespace}/pipelines/${pipelineId}/jobs`,
+            method: 'GET',
+            context: {
+                token: this.jwt
+            }
+        });
+    this.getPipeline = pipelineId =>
+        request({
+            url: `${this.instance}/${this.namespace}/pipelines/${pipelineId}`,
             method: 'GET',
             context: {
                 token: this.jwt
