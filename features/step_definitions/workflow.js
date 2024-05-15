@@ -55,6 +55,7 @@ Given(
                     this.pipelineId = response.body.id;
                 })
                 .catch(err => {
+                    console.log('err: ', err);
                     Assert.strictEqual(err.statusCode, 409);
 
                     const [, str] = err.message.split(': ');
