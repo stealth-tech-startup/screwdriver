@@ -4,6 +4,7 @@ const boom = require('@hapi/boom');
 const hoek = require('@hapi/hoek');
 const schema = require('screwdriver-data-schema');
 const joi = require('joi');
+const logger = require('screwdriver-logger');
 const idSchema = schema.models.build.base.extract('id');
 const { getScmUri, getUserPermissions, getFullStageJobName } = require('../helper');
 const STAGE_TEARDOWN_PATTERN = /^stage@([\w-]+)(?::teardown)$/;
@@ -241,12 +242,16 @@ module.exports = () => ({
                 build.stats = Object.assign(build.stats, stats);
             }
 
+            logger.info(`Updating build ${id} with ${desiredStatus} status`);
+
             // Short circuit for cases that don't need to update status
             if (!desiredStatus) {
                 build.statusMessage = statusMessage || build.statusMessage;
             } else if (['SUCCESS', 'FAILURE', 'ABORTED'].includes(desiredStatus)) {
                 build.meta = request.payload.meta || {};
+                logger.info(`Updating build ${id} with metadata: ${build.meta}`);
                 event.meta = { ...event.meta, ...build.meta };
+                logger.info(`Updating event ${event.id} with metadata: ${event.meta}`);
                 build.endTime = new Date().toISOString();
             } else if (desiredStatus === 'RUNNING') {
                 build.startTime = new Date().toISOString();
